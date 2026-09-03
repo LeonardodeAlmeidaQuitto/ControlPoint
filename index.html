@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlPoint - Registro de Ponto</title>
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- CDN Lucide Icons & jsQR -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <i data-lucide="clock"></i>
+      <span>ControlPoint</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <div id="realtime-clock" style="font-size: 1.25rem; font-weight: 700; letter-spacing: 0.05em;">--:--:--</div>
+      <a href="admin.html" class="btn"><i data-lucide="shield"></i> Painel RH</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="kiosk-grid">
+      <!-- Left Column: Camera Viewport -->
+      <div class="card flex flex-col items-center">
+        <div class="card-header" style="width: 100%;">
+          <div class="card-title">
+            <i data-lucide="camera"></i>
+            <span>Leitor de QR Code / Câmera</span>
+          </div>
+          <span class="badge badge-success"><i data-lucide="radio"></i> AO VIVO</span>
+        </div>
+
+        <div class="scanner-viewport">
+          <video id="webcam-feed" autoplay playsinline muted></video>
+          <div class="scanner-overlay"></div>
+          <canvas id="canvas-capture" style="display: none;"></canvas>
+        </div>
+
+        <div id="status-box" class="status-box info" style="width: 100%;">
+          <i data-lucide="info"></i>
+          <span>Aproxime seu crachá com QR Code da câmera.</span>
+        </div>
+      </div>
+
+      <!-- Right Column: Kiosk Instructions & Manual Simulator -->
+      <div class="flex flex-col gap-4">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="qr-code"></i>
+              <span>Instruções de Ponto</span>
+            </div>
+          </div>
+          <ol style="margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; color: var(--text-secondary);">
+            <li>Posicione o <strong>QR Code do seu crachá</strong> em frente à câmera.</li>
+            <li>Aguarde o enquadramento e a leitura automática.</li>
+            <li>O sistema capturará sua foto e validará a janela de horário.</li>
+            <li>Em caso de aprovação, o comprovante será exibido na tela.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <i data-lucide="terminal"></i>
+              <span>Simulador / Teste de Crachá</span>
+            </div>
+          </div>
+          <p style="font-size: 0.875rem; margin-bottom: 1rem;">
+            Se estiver sem câmera ou testando via teclado, digite o código do QR Code / Matrícula abaixo:
+          </p>
+          <div class="flex gap-2">
+            <input type="text" id="input-simulate-qr" placeholder="Ex: HASH_MATHIAS ou 99" style="flex: 1; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.875rem;">
+            <button id="btn-simulate-qr" class="btn btn-primary">Registrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Ticket Overlay -->
+  <div id="ticket-modal" class="modal-overlay"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
