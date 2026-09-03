@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlPoint - Painel Administrativo RH</title>
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- CDN Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <i data-lucide="shield"></i>
+      <span>ControlPoint RH</span>
+    </div>
+    <div>
+      <a href="index.html" class="btn"><i data-lucide="arrow-left"></i> Voltar ao Kiosk</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i data-lucide="database"></i>
+          <span>Gestão e Auditoria de Ponto</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="registros"><i data-lucide="check-circle-2"></i> Batidas Aprovadas</button>
+        <button class="tab-btn" data-tab="ocorrencias"><i data-lucide="alert-triangle"></i> Ocorrências e Bloqueios</button>
+        <button class="tab-btn" data-tab="funcionarios"><i data-lucide="users"></i> Colaboradores e Janelas</button>
+      </div>
+
+      <!-- Tab 1: Registros de Ponto -->
+      <div id="tab-registros" class="tab-content" style="display: block;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>Tipo</th>
+                <th>Data e Hora</th>
+                <th>Código Comprovante</th>
+                <th>Foto</th>
+              </tr>
+            </thead>
+            <tbody id="table-registros">
+              <tr><td colspan="5" class="text-muted" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Ocorrências -->
+      <div id="tab-ocorrencias" class="tab-content" style="display: none;">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Colaborador</th>
+                <th>QR Code Lido</th>
+                <th>Motivo do Bloqueio</th>
+                <th>Data e Hora</th>
+                <th>Foto</th>
+              </tr>
+            </thead>
+            <tbody id="table-ocorrencias">
+              <tr><td colspan="5" class="text-muted" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Colaboradores -->
+      <div id="tab-funcionarios" class="tab-content" style="display: none;">
+        <div class="flex justify-between items-center" style="margin-bottom: 1rem;">
+          <h3>Colaboradores Cadastrados</h3>
+          <button id="btn-new-func" class="btn btn-primary"><i data-lucide="user-plus"></i> Novo Colaborador</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Matrícula</th>
+                <th>Hash / QR Code</th>
+                <th>Status</th>
+                <th>Janela de Horários (Entrada / Saída)</th>
+              </tr>
+            </thead>
+            <tbody id="table-funcionarios">
+              <tr><td colspan="5" class="text-muted" style="text-align:center;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Cadastrar Colaborador -->
+  <div id="modal-funcionario" class="modal-overlay">
+    <div class="card" style="width: 100%; max-width: 500px; background: white;">
+      <div class="card-header">
+        <div class="card-title">
+          <i data-lucide="user-plus"></i>
+          <span>Cadastrar Colaborador</span>
+        </div>
+      </div>
+      <form id="form-funcionario" class="flex flex-col gap-3">
+        <div>
+          <label style="font-size:0.8rem; font-weight:600;">Nome Completo:</label>
+          <input type="text" id="input-nome" required style="width:100%; padding:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+        </div>
+        <div class="flex gap-2">
+          <div style="flex:1;">
+            <label style="font-size:0.8rem; font-weight:600;">Matrícula:</label>
+            <input type="text" id="input-matricula" required style="width:100%; padding:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.8rem; font-weight:600;">QR Code Hash (ou ID):</label>
+            <input type="text" id="input-qrcode" placeholder="Mesmo da matrícula se vazio" style="width:100%; padding:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+        </div>
+
+        <h4 style="margin-top:0.5rem; font-size:0.9rem;">Janela de Entrada:</h4>
+        <div class="flex gap-2">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem;">Início (ex: 07:45):</label>
+            <input type="time" id="input-ent-inicio" value="07:45" required style="width:100%; padding:0.4rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem;">Fim (ex: 08:00):</label>
+            <input type="time" id="input-ent-fim" value="08:00" required style="width:100%; padding:0.4rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+        </div>
+
+        <h4 style="margin-top:0.5rem; font-size:0.9rem;">Janela de Saída:</h4>
+        <div class="flex gap-2">
+          <div style="flex:1;">
+            <label style="font-size:0.75rem;">Início (ex: 17:45):</label>
+            <input type="time" id="input-sai-inicio" value="17:45" required style="width:100%; padding:0.4rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:0.75rem;">Fim (ex: 18:00):</label>
+            <input type="time" id="input-sai-fim" value="18:00" required style="width:100%; padding:0.4rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+          </div>
+        </div>
+
+        <div class="flex gap-2 justify-between" style="margin-top:1rem;">
+          <button type="button" id="btn-cancel-func" class="btn">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Colaborador</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
