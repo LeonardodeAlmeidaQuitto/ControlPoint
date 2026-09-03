@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlPoint - Painel RH & Ocorrências</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <i data-lucide="shield-check"></i>
+      <span>ControlPoint RH</span>
+    </div>
+    <nav style="display: flex; gap: 12px; align-items: center;">
+      <a href="index.html" class="nav-link">
+        <i data-lucide="arrow-left"></i> Voltar ao Kiosk
+      </a>
+    </nav>
+  </header>
+
+  <main style="flex-direction: column;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h1 style="font-size: 1.5rem; font-weight: 700;">Painel de Auditoria e Ocorrências</h1>
+      <button class="btn btn-primary" id="refresh-btn">
+        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Atualizar Dados
+      </button>
+    </div>
+
+    <!-- Abas / Tabs -->
+    <div style="display: flex; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">
+      <button class="btn btn-primary" id="tab-registros-btn">Registros de Ponto (Aprovados)</button>
+      <button class="btn" id="tab-ocorrencias-btn">Ocorrências & Bloqueios</button>
+    </div>
+
+    <!-- Tabela Registros de Ponto -->
+    <div class="card" id="section-registros">
+      <h2 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Registros Aprovados</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Matrícula</th>
+            <th>Colaborador</th>
+            <th>Tipo</th>
+            <th>Foto Capturada</th>
+            <th>Hash Comprovante</th>
+          </tr>
+        </thead>
+        <tbody id="registros-table-body">
+          <tr><td colspan="6" style="text-align: center;">Carregando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tabela Ocorrências -->
+    <div class="card" id="section-ocorrencias" style="display: none;">
+      <h2 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Ocorrências e Bloqueios</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Matrícula / QR</th>
+            <th>Colaborador</th>
+            <th>Tipo Ocorrência</th>
+            <th>Foto Tentativa</th>
+          </tr>
+        </thead>
+        <tbody id="ocorrencias-table-body">
+          <tr><td colspan="5" style="text-align: center;">Carregando ocorrências...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script type="module">
+    import { getRegistrosPonto, getOcorrenciasPonto } from './js/services/supabase.js';
+    import { initIcons } from './js/components/icons.js';
+
+    const tabRegistrosBtn = document.getElementById('tab-registros-btn');
+    const tabOcorrenciasBtn = document.getElementById('tab-ocorrencias-btn');
+    const sectionRegistros = document.getElementById('section-registros');
+    const sectionOcorrencias = document.getElementById('section-ocorrencias');
+    const refreshBtn = document.getElementById('refresh-btn');
+
+    async function loadData() {
+      initIcons();
+
+      // Registros
+      const registros = await getRegistrosPonto();
+      const registrosBody = document.getElementById('registros-table-body');
+      if (!registros || registros.length === 0) {
+        registrosBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
+      } else {
+        registrosBody.innerHTML = registros.map(r => `
+          <tr>
+            <td>${new Date(r.data_hora).toLocaleString('pt-BR')}</td>
+            <td>${r.funcionarios ? r.funcionarios.matricula : 'N/A'}</td>
+            <td><strong>${r.funcionarios ? r.funcionarios.nome : 'Desconhecido'}</strong></td>
+            <td><span class="badge badge-success">${r.tipo_registro}</span></td>
+            <td>
+              ${r.foto_registro_url ? `<a href="${r.foto_registro_url}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 0.75rem;"><i data-lucide="image" style="width: 14px; height: 14px;"></i> Ver Foto</a>` : 'Sem foto'}
+            </td>
+            <td><code style="font-size: 0.75rem;">${r.hash_comprovante ? r.hash_comprovante.slice(0, 16) + '...' : 'N/A'}</code></td>
+          </tr>
+        `).join('');
+      }
+
+      // Ocorrências
+      const ocorrencias = await getOcorrenciasPonto();
+      const ocorrenciasBody = document.getElementById('ocorrencias-table-body');
+      if (!ocorrencias || ocorrencias.length === 0) {
+        ocorrenciasBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhuma ocorrência registrada.</td></tr>';
+      } else {
+        ocorrenciasBody.innerHTML = ocorrencias.map(o => `
+          <tr>
+            <td>${new Date(o.data_hora).toLocaleString('pt-BR')}</td>
+            <td>${o.funcionarios ? o.funcionarios.matricula : (o.qrcode_lido || 'N/A')}</td>
+            <td><strong>${o.funcionarios ? o.funcionarios.nome : 'Não identificado'}</strong></td>
+            <td><span class="badge badge-error">${o.tipo_ocorrencia}</span></td>
+            <td>
+              ${o.foto_tentativa_url ? `<a href="${o.foto_tentativa_url}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 0.75rem;"><i data-lucide="image" style="width: 14px; height: 14px;"></i> Ver Foto</a>` : 'Sem foto'}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      initIcons();
+    }
+
+    tabRegistrosBtn.addEventListener('click', () => {
+      tabRegistrosBtn.className = 'btn btn-primary';
+      tabOcorrenciasBtn.className = 'btn';
+      sectionRegistros.style.display = 'block';
+      sectionOcorrencias.style.display = 'none';
+    });
+
+    tabOcorrenciasBtn.addEventListener('click', () => {
+      tabOcorrenciasBtn.className = 'btn btn-primary';
+      tabRegistrosBtn.className = 'btn';
+      sectionOcorrencias.style.display = 'block';
+      sectionRegistros.style.display = 'none';
+    });
+
+    refreshBtn.addEventListener('click', loadData);
+
+    document.addEventListener('DOMContentLoaded', loadData);
+  </script>
+</body>
+</html>
