@@ -49,6 +49,13 @@ class KioskApp {
     initIcons();
     const cameraOk = await this.cameraService.startCamera();
     if (!cameraOk) {
+      const cameraStatusBadge = document.getElementById('camera-status');
+      if (cameraStatusBadge) {
+        cameraStatusBadge.className = 'badge badge-error';
+        cameraStatusBadge.innerHTML = `<i data-lucide="camera-off" style="width: 14px; height: 14px;"></i> Câmera Desativada`;
+        initIcons();
+      }
+
       this.showModal({
         success: false,
         title: 'Câmera Não Detectada',
@@ -155,7 +162,7 @@ class KioskApp {
         this.showModal({
           success: true,
           title: `Ponto Registrado (${avaliacao.tipoRegistro})`,
-          message: `Olá, ${funcionario.nome}! Seu ponto de ${avaliacao.tipoRegistro.toLowerCase()} foi confirmed.`
+          message: `Olá, ${funcionario.nome}! Seu ponto de ${avaliacao.tipoRegistro.toLowerCase()} foi confirmado.`
         });
       } else {
         // Gravar em ocorrencias_ponto

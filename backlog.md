@@ -24,6 +24,7 @@
 ### 5. Aplicação Kiosk e Painel de Administração
 - [x] Criar `index.html` (Interface do Kiosk para Tablet/Desktop)
 - [x] Criar `js/app.js` (Orquestrador do Kiosk de Ponto)
+- [x] Atualizar indicador visual para "Câmera Desativada" (vermelho) quando a câmera não for encontrada
 - [x] Criar `admin.html` (Painel Administrativo do RH e Ocorrências)
 
 ### 6. Testes e Validação
