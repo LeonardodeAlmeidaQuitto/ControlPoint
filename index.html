@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlPoint - Kiosk de Ponto</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <i data-lucide="clock"></i>
+      <span>ControlPoint</span>
+    </div>
+    <div class="clock-display" id="live-clock">--:--:--</div>
+    <nav>
+      <a href="admin.html" class="nav-link">
+        <i data-lucide="shield"></i> Painel RH
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="kiosk-grid">
+      <!-- Camera Card -->
+      <div class="card camera-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2 style="font-size: 1.125rem; font-weight: 600;">Aproxime seu Crachá (QR Code)</h2>
+          <span class="badge badge-success" id="camera-status">
+            <i data-lucide="camera" style="width: 14px; height: 14px;"></i> Câmera Ativa
+          </span>
+        </div>
+        <div class="camera-viewport">
+          <video id="video-feed" playsinline autoplay muted></video>
+          <div class="scan-overlay"></div>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); text-align: center;">
+          Aponte o código para o quadrado delimitado. A leitura é automática.
+        </p>
+      </div>
+
+      <!-- Live Info / Instruction Card -->
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="info" style="color: var(--primary-color);"></i> Instruções de Uso
+          </h3>
+          <ul style="list-style: none; font-size: 0.875rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 12px;">
+            <li style="display: flex; align-items: flex-start; gap: 8px;">
+              <i data-lucide="check-circle-2" style="color: var(--success-color); width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+              <span>Garanta que o QR Code esteja legível e bem iluminado.</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 8px;">
+              <i data-lucide="check-circle-2" style="color: var(--success-color); width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+              <span>O registro somente será aprovado se estiver dentro da janela de horário autorizada.</span>
+            </li>
+            <li style="display: flex; align-items: flex-start; gap: 8px;">
+              <i data-lucide="check-circle-2" style="color: var(--success-color); width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;"></i>
+              <span>Após a aprovação, o comprovante (ticket) será gerado para impressão.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div id="latest-ticket-container" style="display: none;">
+          <!-- Injetado dinamicamente via JS -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Feedback Status -->
+  <div class="modal-overlay" id="feedback-modal">
+    <div class="modal-box">
+      <div class="modal-icon" id="modal-icon-container">
+        <i id="modal-icon" data-lucide="check" style="width: 32px; height: 32px;"></i>
+      </div>
+      <h2 id="modal-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">--</h2>
+      <p id="modal-message" style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 24px;">--</p>
+      <button class="btn btn-primary" id="modal-close-btn" style="width: 100%;">OK / Fechar</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
