@@ -416,9 +416,13 @@
         funcGrid.innerHTML = '<p style="color: var(--text-secondary);">Nenhum colaborador cadastrado no momento.</p>';
       } else {
         funcGrid.innerHTML = colaboradores.map((f, index) => {
-          const janela = f.janelas_horario ? f.janelas_horario[0] : null;
-          const horEntrada = janela ? `${janela.janela_entrada_inicio.slice(0,5)} às ${janela.janela_entrada_fim.slice(0,5)}` : '07:45 às 08:00';
-          const horSaida = janela ? `${janela.janela_saida_inicio.slice(0,5)} às ${janela.janela_saida_fim.slice(0,5)}` : '17:45 às 18:00';
+          const janela = Array.isArray(f.janelas_horario) ? f.janelas_horario[0] : f.janelas_horario;
+          const horEntrada = (janela && janela.janela_entrada_inicio && janela.janela_entrada_fim)
+            ? `${janela.janela_entrada_inicio.slice(0,5)} às ${janela.janela_entrada_fim.slice(0,5)}`
+            : 'Não configurado';
+          const horSaida = (janela && janela.janela_saida_inicio && janela.janela_saida_fim)
+            ? `${janela.janela_saida_inicio.slice(0,5)} às ${janela.janela_saida_fim.slice(0,5)}`
+            : 'Não configurado';
 
           const ultimoRegistroFormatado = f.registros && f.registros.length > 0
             ? new Date(f.registros[0].data_hora).toLocaleString('pt-BR')
@@ -448,7 +452,7 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                  <span class="badge badge-success">${f.registros ? f.registros.length : 0} Pontos Batidos</span>
+                  <span class="badge badge-success">${f.registros ? f.registros.length : 0} Pontos Batinos</span>
                   <span class="badge badge-warning">${f.ocorrencias ? f.ocorrencias.length : 0} Ocorrências</span>
                 </div>
               </div>
