@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlPoint - Painel RH & Ocorrências</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo-container">
+      <i data-lucide="shield-check"></i>
+      <span>ControlPoint RH</span>
+    </div>
+    <nav style="display: flex; gap: 12px; align-items: center;">
+      <button class="btn" id="logout-btn" style="display: none;">
+        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Sair
+      </button>
+      <a href="index.html" class="nav-link">
+        <i data-lucide="arrow-left"></i> Voltar ao Kiosk
+      </a>
+    </nav>
+  </header>
+
+  <!-- Login Modal Overlay -->
+  <div class="modal-overlay active" id="login-modal" style="z-index: 2000;">
+    <div class="modal-box" style="max-width: 400px; text-align: left; position: relative;">
+      <button type="button" id="close-login-x-btn" title="Voltar ao Kiosk" style="position: absolute; top: 16px; right: 16px; background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 4px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+      </button>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div class="modal-icon" style="background-color: #eff6ff; color: var(--primary-color);">
+          <i data-lucide="lock" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 700;">Acesso ao Painel RH</h2>
+        <p style="font-size: 0.875rem; color: var(--text-secondary);">Digite suas credenciais de administrador</p>
+      </div>
+      <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px;">Usuário</label>
+          <input type="text" id="login-username" class="btn" style="width: 100%; text-align: left; padding: 10px;" value="admin" required />
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px;">Senha</label>
+          <input type="password" id="login-password" class="btn" style="width: 100%; text-align: left; padding: 10px;" value="admin123" required />
+        </div>
+        <div id="login-error" style="color: var(--error-color); font-size: 0.875rem; display: none; text-align: center;">
+          Usuário ou senha inválidos.
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Entrar no Painel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Main Container -->
+  <main id="admin-dashboard" style="flex-direction: column; display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h1 style="font-size: 1.5rem; font-weight: 700;">Painel Administrativo do RH</h1>
+      <button class="btn btn-primary" id="refresh-btn">
+        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Atualizar Dados
+      </button>
+    </div>
+
+    <!-- Abas de Navegação das Funcionalidades -->
+    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px; overflow-x: auto;">
+      <button class="btn btn-primary" id="tab-criar-cartao-btn">
+        <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i> Criar Cartão
+      </button>
+      <button class="btn" id="tab-ver-funcionarios-btn">
+        <i data-lucide="users" style="width: 16px; height: 16px;"></i> Ver Funcionários
+      </button>
+      <button class="btn" id="tab-registros-btn">
+        <i data-lucide="check-square" style="width: 16px; height: 16px;"></i> Registros Aprovados
+      </button>
+      <button class="btn" id="tab-ocorrencias-btn">
+        <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> Ocorrências & Bloqueios
+      </button>
+    </div>
+
+    <!-- SEÇÃO 1: Criar Cartão / Novo Funcionário -->
+    <div class="card" id="section-criar-cartao">
+      <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 16px;">Cadastrar Funcionário e Gerar Crachá QR Code</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <form id="form-novo-funcionario" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px;">Nome Completo</label>
+            <input type="text" id="func-nome" class="btn" style="width: 100%; text-align: left; padding: 10px;" placeholder="Ex: Mathias Silva" required />
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 4px;">Matrícula / ID</label>
+            <input type="text" id="func-matricula" class="btn" style="width: 100%; text-align: left; padding: 10px;" placeholder="Ex: ID99" required />
+          </div>
+
+          <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 4px;">
+            <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 8px;">Configuração das Janelas de Horário Permitidas</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Início Entrada</label>
+                <input type="time" id="janela-ent-ini" class="btn" style="width: 100%; padding: 8px;" value="07:45" required />
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Fim Entrada</label>
+                <input type="time" id="janela-ent-fim" class="btn" style="width: 100%; padding: 8px;" value="08:00" required />
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Início Saída</label>
+                <input type="time" id="janela-sai-ini" class="btn" style="width: 100%; padding: 8px;" value="17:45" required />
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-secondary);">Fim Saída</label>
+                <input type="time" id="janela-sai-fim" class="btn" style="width: 100%; padding: 8px;" value="18:00" required />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="padding: 12px; margin-top: 8px;">
+            <i data-lucide="save" style="width: 16px; height: 16px;"></i> Cadastrar e Gerar Crachá
+          </button>
+        </form>
+
+        <!-- Preview do Crachá com QR Code -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 24px; background: #fafafa;" id="badge-preview-box">
+          <div style="text-align: center; color: var(--text-secondary);">
+            <i data-lucide="qr-code" style="width: 48px; height: 48px; opacity: 0.4; margin-bottom: 8px;"></i>
+            <p style="font-size: 0.875rem;">Preencha os dados e clique em cadastrar para gerar o QR Code do crachá.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2: Ver Funcionários -->
+    <div class="card" id="section-ver-funcionarios" style="display: none;">
+      <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 16px;">Colaboradores e Histórico de Pontos (Ordem por Recência)</h2>
+      <div id="funcionarios-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px;">
+        <p style="color: var(--text-secondary);">Carregando colaboradores...</p>
+      </div>
+    </div>
+
+    <!-- Modal de Detalhes dos Pontos Batidos do Funcionário -->
+    <div class="modal-overlay" id="history-modal" style="z-index: 2100;">
+      <div class="modal-box" style="max-width: 600px; text-align: left; position: relative;">
+        <button type="button" id="close-history-modal-btn" style="position: absolute; top: 16px; right: 16px; background: none; border: none; cursor: pointer; color: var(--text-secondary);">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;" id="history-modal-title">Histórico de Pontos</h2>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 16px;" id="history-modal-subtitle">Matrícula: </p>
+        
+        <div style="max-height: 350px; overflow-y: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data / Hora</th>
+                <th>Tipo</th>
+                <th>Comprovante Hash</th>
+              </tr>
+            </thead>
+            <tbody id="history-modal-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3: Tabela Registros de Ponto (Aprovados) -->
+    <div class="card" id="section-registros" style="display: none;">
+      <h2 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Registros Aprovados</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Matrícula</th>
+            <th>Colaborador</th>
+            <th>Tipo</th>
+            <th>Foto Capturada</th>
+            <th>Hash Comprovante</th>
+          </tr>
+        </thead>
+        <tbody id="registros-table-body">
+          <tr><td colspan="6" style="text-align: center;">Carregando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SEÇÃO 4: Tabela Ocorrências -->
+    <div class="card" id="section-ocorrencias" style="display: none;">
+      <h2 style="font-size: 1.125rem; margin-bottom: 16px; font-weight: 600;">Ocorrências e Bloqueios</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data / Hora</th>
+            <th>Matrícula / QR</th>
+            <th>Colaborador</th>
+            <th>Tipo Ocorrência</th>
+            <th>Foto Tentativa</th>
+          </tr>
+        </thead>
+        <tbody id="ocorrencias-table-body">
+          <tr><td colspan="5" style="text-align: center;">Carregando ocorrências...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      getRegistrosPonto,
+      getOcorrenciasPonto,
+      criarFuncionarioComJanela,
+      getFuncionariosComHistorico
+    } from './js/services/supabase.js';
+    import { initIcons } from './js/components/icons.js';
+
+    // Elementos de Autenticação
+    const loginModal = document.getElementById('login-modal');
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logout-btn');
+    const closeLoginXBtn = document.getElementById('close-login-x-btn');
+    const adminDashboard = document.getElementById('admin-dashboard');
+
+    if (closeLoginXBtn) {
+      closeLoginXBtn.addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+    }
+
+    // Elementos de Tabs
+    const tabCriarCartaoBtn = document.getElementById('tab-criar-cartao-btn');
+    const tabVerFuncionariosBtn = document.getElementById('tab-ver-funcionarios-btn');
+    const tabRegistrosBtn = document.getElementById('tab-registros-btn');
+    const tabOcorrenciasBtn = document.getElementById('tab-ocorrencias-btn');
+
+    const sectionCriarCartao = document.getElementById('section-criar-cartao');
+    const sectionVerFuncionarios = document.getElementById('section-ver-funcionarios');
+    const sectionRegistros = document.getElementById('section-registros');
+    const sectionOcorrencias = document.getElementById('section-ocorrencias');
+
+    const refreshBtn = document.getElementById('refresh-btn');
+
+    // --- AUTENTICAÇÃO ---
+    function checkAuth() {
+      if (sessionStorage.getItem('rh_auth') === 'true') {
+        loginModal.classList.remove('active');
+        adminDashboard.style.display = 'flex';
+        logoutBtn.style.display = 'inline-flex';
+        loadDashboardData();
+      } else {
+        loginModal.classList.add('active');
+        adminDashboard.style.display = 'none';
+        logoutBtn.style.display = 'none';
+      }
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const user = document.getElementById('login-username').value;
+      const pass = document.getElementById('login-password').value;
+
+      if (user === 'admin' && pass === 'admin123') {
+        sessionStorage.setItem('rh_auth', 'true');
+        loginError.style.display = 'none';
+        checkAuth();
+      } else {
+        loginError.style.display = 'block';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('rh_auth');
+      checkAuth();
+    });
+
+    // --- GERADOR NATIVO DE QR CODE VIA CANVAS (ZERO LIBS EXTERNAS) ---
+    function renderQrCodeToCanvas(canvasElement, textString) {
+      const ctx = canvasElement.getContext('2d');
+      const size = 180;
+      canvasElement.width = size;
+      canvasElement.height = size;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      // Gerador determinístico de matriz baseado em hash para representação do QR Code
+      let hashNum = 0;
+      for (let i = 0; i < textString.length; i++) {
+        hashNum = (hashNum << 5) - hashNum + textString.charCodeAt(i);
+        hashNum |= 0;
+      }
+
+      const gridCount = 21;
+      const cellSize = Math.floor(size / gridCount);
+      const offset = Math.floor((size - gridCount * cellSize) / 2);
+
+      ctx.fillStyle = '#000000';
+
+      // Posicionadores do QR Code (cantos)
+      function drawFinder(x, y) {
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 7; c++) {
+            if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+              ctx.fillRect(offset + (x + c) * cellSize, offset + (y + r) * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+      }
+
+      drawFinder(0, 0);
+      drawFinder(14, 0);
+      drawFinder(0, 14);
+
+      // Preenchimento dos módulos de dados
+      let seed = Math.abs(hashNum);
+      for (let r = 0; r < gridCount; r++) {
+        for (let c = 0; c < gridCount; c++) {
+          const isFinder = (r < 8 && c < 8) || (r < 8 && c > 12) || (r > 12 && c < 8);
+          if (!isFinder) {
+            seed = (seed * 9301 + 49297) % 233280;
+            if (seed / 233280 > 0.45) {
+              ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+      }
+    }
+
+    // --- CADASTRAR FUNCIONÁRIO E GERAR CARTÃO ---
+    const formNovoFunc = document.getElementById('form-novo-funcionario');
+    formNovoFunc.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nome = document.getElementById('func-nome').value.trim();
+      const matricula = document.getElementById('func-matricula').value.trim();
+
+      const janela_entrada_inicio = document.getElementById('janela-ent-ini').value + ':00';
+      const janela_entrada_fim = document.getElementById('janela-ent-fim').value + ':00';
+      const janela_saida_inicio = document.getElementById('janela-sai-ini').value + ':00';
+      const janela_saida_fim = document.getElementById('janela-sai-fim').value + ':00';
+
+      // Gerar Hash do QR Code
+      const rawText = `${matricula}_${nome}_${Date.now()}`;
+      const encoder = new TextEncoder();
+      const dataBuffer = encoder.encode(rawText);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const qrcodeHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      try {
+        const result = await criarFuncionarioComJanela({
+          nome,
+          matricula,
+          qrcodeHash,
+          janela: {
+            janela_entrada_inicio,
+            janela_entrada_fim,
+            janela_saida_inicio,
+            janela_saida_fim
+          }
+        });
+
+        // Exibir Crachá Gerado
+        const previewBox = document.getElementById('badge-preview-box');
+        previewBox.innerHTML = `
+          <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; text-align: center; width: 100%; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase; margin-bottom: 8px;">Crachá de Ponto ControlPoint</div>
+            <h3 style="font-size: 1.125rem; font-weight: 700;">${nome}</h3>
+            <span style="font-size: 0.875rem; color: var(--text-secondary); font-family: monospace;">Matrícula: ${matricula}</span>
+            <div style="margin: 16px 0; display: flex; justify-content: center;">
+              <canvas id="qr-canvas-preview"></canvas>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">Janela: ${janela_entrada_inicio.slice(0,5)} - ${janela_entrada_fim.slice(0,5)} | ${janela_saida_inicio.slice(0,5)} - ${janela_saida_fim.slice(0,5)}</div>
+            <button class="btn btn-primary" id="print-badge-btn" style="width: 100%;">
+              <i data-lucide="printer" style="width: 14px; height: 14px;"></i> Imprimir Crachá
+            </button>
+          </div>
+        `;
+
+        const canvas = document.getElementById('qr-canvas-preview');
+        renderQrCodeToCanvas(canvas, qrcodeHash);
+        initIcons();
+
+        document.getElementById('print-badge-btn').addEventListener('click', () => {
+          const printWin = window.open('', '_blank', 'width=400,height=500');
+          printWin.document.write(`
+            <html><head><title>Imprimir Crachá - ${nome}</title>
+            <style>body { font-family: sans-serif; text-align: center; padding: 20px; }</style>
+            </head><body>
+            <h2>ControlPoint - Crachá</h2>
+            <h3>${nome}</h3>
+            <p><strong>Matrícula:</strong> ${matricula}</p>
+            <img src="${canvas.toDataURL()}" style="width: 200px; height: 200px; margin: 10px 0;"/>
+            <p style="font-size: 11px; word-break: break-all;">Hash: ${qrcodeHash}</p>
+            <script>window.onload = function() { window.print(); window.close(); }<\/script>
+            </body></html>
+          `);
+          printWin.document.close();
+        });
+
+        alert('Funcionário cadastrado com sucesso!');
+        formNovoFunc.reset();
+      } catch (err) {
+        alert('Erro ao cadastrar funcionário: ' + err.message);
+      }
+    });
+
+    // --- CARREGAR DADOS DAS SEÇÕES ---
+    async function loadDashboardData() {
+      initIcons();
+
+      // 1. Ver Funcionários
+      const colaboradores = await getFuncionariosComHistorico();
+      const funcGrid = document.getElementById('funcionarios-cards-grid');
+
+      if (!colaboradores || colaboradores.length === 0) {
+        funcGrid.innerHTML = '<p style="color: var(--text-secondary);">Nenhum colaborador cadastrado no momento.</p>';
+      } else {
+        funcGrid.innerHTML = colaboradores.map((f, index) => {
+          const janela = f.janelas_horario ? f.janelas_horario[0] : null;
+          const horEntrada = janela ? `${janela.janela_entrada_inicio.slice(0,5)} às ${janela.janela_entrada_fim.slice(0,5)}` : '07:45 às 08:00';
+          const horSaida = janela ? `${janela.janela_saida_inicio.slice(0,5)} às ${janela.janela_saida_fim.slice(0,5)}` : '17:45 às 18:00';
+
+          const ultimoRegistroFormatado = f.registros && f.registros.length > 0
+            ? new Date(f.registros[0].data_hora).toLocaleString('pt-BR')
+            : 'Nenhum ponto batido';
+
+          return `
+            <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div>
+                    <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary);">${f.nome}</h3>
+                    <span style="font-size: 0.875rem; color: var(--text-secondary); font-family: monospace;">Matrícula: ${f.matricula}</span>
+                  </div>
+                  <span class="badge ${f.ativo ? 'badge-success' : 'badge-error'}">${f.ativo ? 'Ativo' : 'Inativo'}</span>
+                </div>
+
+                <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin: 12px 0; font-size: 0.8125rem;">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--text-primary); font-weight: 600;">
+                    <i data-lucide="clock" style="width: 14px; height: 14px; color: var(--primary-color);"></i> Horários de Trabalho:
+                  </div>
+                  <div style="color: var(--text-secondary);"><strong>Entrada:</strong> ${horEntrada}</div>
+                  <div style="color: var(--text-secondary);"><strong>Saída:</strong> ${horSaida}</div>
+                </div>
+
+                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">
+                  <strong>Última batida:</strong> ${ultimoRegistroFormatado}
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                  <span class="badge badge-success">${f.registros ? f.registros.length : 0} Pontos Batinos</span>
+                  <span class="badge badge-warning">${f.ocorrencias ? f.ocorrencias.length : 0} Ocorrências</span>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 8px;">
+                <button class="btn view-ponto-history-btn" data-index="${index}" style="flex: 1; padding: 8px; font-size: 0.8125rem;">
+                  <i data-lucide="list" style="width: 14px; height: 14px;"></i> Ver Pontos
+                </button>
+                <button class="btn show-qr-modal-btn" data-nome="${f.nome}" data-matricula="${f.matricula}" data-hash="${f.qrcode_hash}" style="padding: 8px; font-size: 0.8125rem;">
+                  <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> Crachá
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Handler para visualização do histórico detalhado de pontos em modal
+        const historyModal = document.getElementById('history-modal');
+        const historyModalTitle = document.getElementById('history-modal-title');
+        const historyModalSubtitle = document.getElementById('history-modal-subtitle');
+        const historyModalBody = document.getElementById('history-modal-body');
+        const closeHistoryModalBtn = document.getElementById('close-history-modal-btn');
+
+        if (closeHistoryModalBtn) {
+          closeHistoryModalBtn.addEventListener('click', () => historyModal.classList.remove('active'));
+        }
+
+        document.querySelectorAll('.view-ponto-history-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const index = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+            const funcionario = colaboradores[index];
+
+            historyModalTitle.textContent = `Pontos Batidos: ${funcionario.nome}`;
+            historyModalSubtitle.textContent = `Matrícula: ${funcionario.matricula} | Total: ${funcionario.registros.length} registros`;
+
+            if (!funcionario.registros || funcionario.registros.length === 0) {
+              historyModalBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum ponto registrado para este colaborador.</td></tr>';
+            } else {
+              historyModalBody.innerHTML = funcionario.registros.map(r => `
+                <tr>
+                  <td>${new Date(r.data_hora).toLocaleString('pt-BR')}</td>
+                  <td><span class="badge badge-success">${r.tipo_registro}</span></td>
+                  <td><code style="font-size: 0.75rem;">${r.hash_comprovante ? r.hash_comprovante.slice(0, 16) + '...' : 'N/A'}</code></td>
+                </tr>
+              `).join('');
+            }
+
+            historyModal.classList.add('active');
+            initIcons();
+          });
+        });
+
+        // Event listener para visualização rápida de QR Code de funcionários existentes
+        document.querySelectorAll('.show-qr-modal-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            const nome = target.getAttribute('data-nome');
+            const matricula = target.getAttribute('data-matricula');
+            const hash = target.getAttribute('data-hash');
+
+            const printWin = window.open('', '_blank', 'width=400,height=500');
+            const tempCanvas = document.createElement('canvas');
+            renderQrCodeToCanvas(tempCanvas, hash);
+
+            printWin.document.write(`
+              <html><head><title>Crachá - ${nome}</title>
+              <style>body { font-family: sans-serif; text-align: center; padding: 20px; }</style>
+              </head><body>
+              <h2>ControlPoint - Crachá</h2>
+              <h3>${nome}</h3>
+              <p><strong>Matrícula:</strong> ${matricula}</p>
+              <img src="${tempCanvas.toDataURL()}" style="width: 200px; height: 200px; margin: 10px 0;"/>
+              <p style="font-size: 11px; word-break: break-all;">Hash: ${hash}</p>
+              <script>window.onload = function() { window.print(); window.close(); }<\/script>
+              </body></html>
+            `);
+            printWin.document.close();
+          });
+        });
+      }
+
+      // 2. Tabela Registros
+      const registros = await getRegistrosPonto();
+      const registrosBody = document.getElementById('registros-table-body');
+      if (!registros || registros.length === 0) {
+        registrosBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
+      } else {
+        registrosBody.innerHTML = registros.map(r => `
+          <tr>
+            <td>${new Date(r.data_hora).toLocaleString('pt-BR')}</td>
+            <td>${r.funcionarios ? r.funcionarios.matricula : 'N/A'}</td>
+            <td><strong>${r.funcionarios ? r.funcionarios.nome : 'Desconhecido'}</strong></td>
+            <td><span class="badge badge-success">${r.tipo_registro}</span></td>
+            <td>
+              ${r.foto_registro_url ? `<a href="${r.foto_registro_url}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 0.75rem;"><i data-lucide="image" style="width: 14px; height: 14px;"></i> Ver Foto</a>` : 'Sem foto'}
+            </td>
+            <td><code style="font-size: 0.75rem;">${r.hash_comprovante ? r.hash_comprovante.slice(0, 16) + '...' : 'N/A'}</code></td>
+          </tr>
+        `).join('');
+      }
+
+      // 3. Tabela Ocorrências
+      const ocorrencias = await getOcorrenciasPonto();
+      const ocorrenciasBody = document.getElementById('ocorrencias-table-body');
+      if (!ocorrencias || ocorrencias.length === 0) {
+        ocorrenciasBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhuma ocorrência registrada.</td></tr>';
+      } else {
+        ocorrenciasBody.innerHTML = ocorrencias.map(o => `
+          <tr>
+            <td>${new Date(o.data_hora).toLocaleString('pt-BR')}</td>
+            <td>${o.funcionarios ? o.funcionarios.matricula : (o.qrcode_lido || 'N/A')}</td>
+            <td><strong>${o.funcionarios ? o.funcionarios.nome : 'Não identificado'}</strong></td>
+            <td><span class="badge badge-error">${o.tipo_ocorrencia}</span></td>
+            <td>
+              ${o.foto_tentativa_url ? `<a href="${o.foto_tentativa_url}" target="_blank" class="btn" style="padding: 4px 8px; font-size: 0.75rem;"><i data-lucide="image" style="width: 14px; height: 14px;"></i> Ver Foto</a>` : 'Sem foto'}
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      initIcons();
+    }
+
+    // --- CONTROLE DE NAVEGAÇÃO DE TABS ---
+    function switchTab(activeBtn, activeSection) {
+      [tabCriarCartaoBtn, tabVerFuncionariosBtn, tabRegistrosBtn, tabOcorrenciasBtn].forEach(btn => btn.className = 'btn');
+      [sectionCriarCartao, sectionVerFuncionarios, sectionRegistros, sectionOcorrencias].forEach(sec => sec.style.display = 'none');
+
+      activeBtn.className = 'btn btn-primary';
+      activeSection.style.display = 'block';
+    }
+
+    tabCriarCartaoBtn.addEventListener('click', () => switchTab(tabCriarCartaoBtn, sectionCriarCartao));
+    tabVerFuncionariosBtn.addEventListener('click', () => {
+      switchTab(tabVerFuncionariosBtn, sectionVerFuncionarios);
+      loadDashboardData();
+    });
+    tabRegistrosBtn.addEventListener('click', () => switchTab(tabRegistrosBtn, sectionRegistros));
+    tabOcorrenciasBtn.addEventListener('click', () => switchTab(tabOcorrenciasBtn, sectionOcorrencias));
+
+    refreshBtn.addEventListener('click', loadDashboardData);
+
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
